@@ -8,4 +8,10 @@ defmodule StopwatchW.StopwatchLiveTest do
 
     {:ok, _view, _html} = live(conn)
   end
+
+  test "test tick event increment timer", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/")
+    Process.send(view.pid, :tick, [])
+    assert render(view) =~ "00:00:01"
+  end
 end

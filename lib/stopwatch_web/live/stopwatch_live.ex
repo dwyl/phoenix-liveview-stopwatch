@@ -10,7 +10,7 @@ defmodule StopwatchWeb.StopwatchLive do
   end
 
   def handle_event("start", _value, socket) do
-    Process.send_after(self(), :increment, 1000)
+    Process.send_after(self(), :tick, 1000)
     {:noreply, assign(socket, :timer_status, :running)}
   end
 
@@ -18,8 +18,8 @@ defmodule StopwatchWeb.StopwatchLive do
     {:noreply, assign(socket, :timer_status, :stopped)}
   end
 
-  def handle_info(:increment, socket) do
-    if socket.assigns.timer_status == :running, do: Process.send_after(self(), :increment, 1000)
+  def handle_info(:tick, socket) do
+    if socket.assigns.timer_status == :running, do: Process.send_after(self(), :tick, 1000)
     time = Time.add(socket.assigns.time, 1, :second)
     {:noreply, assign(socket, :time, time)}
   end
