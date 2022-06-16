@@ -19,8 +19,12 @@ defmodule StopwatchWeb.StopwatchLive do
   end
 
   def handle_info(:tick, socket) do
-    if socket.assigns.timer_status == :running, do: Process.send_after(self(), :tick, 1000)
-    time = Time.add(socket.assigns.time, 1, :second)
-    {:noreply, assign(socket, :time, time)}
+    if socket.assigns.timer_status == :running do
+      Process.send_after(self(), :tick, 1000)
+      time = Time.add(socket.assigns.time, 1, :second)
+      {:noreply, assign(socket, :time, time)}
+    else
+      {:noreply, socket}
+    end
   end
 end
