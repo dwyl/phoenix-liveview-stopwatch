@@ -9,9 +9,10 @@ defmodule StopwatchW.StopwatchLiveTest do
     {:ok, _view, _html} = live(conn)
   end
 
-  test "test tick event increment timer", %{conn: conn} do
+  test "test timer is running", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/")
-    Process.send(view.pid, :tick, [])
-    assert render(view) =~ "00:00:01"
+    render_click(view, "start")
+    Process.sleep(1000)
+    assert render_click(view, "stop") =~ "00:00:01"
   end
 end
