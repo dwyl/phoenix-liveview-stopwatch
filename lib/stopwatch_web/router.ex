@@ -17,7 +17,7 @@ defmodule StopwatchWeb.Router do
   scope "/", StopwatchWeb do
     pipe_through(:browser)
 
-    live("/", StopwatchLive, :index)
+    live("/", StopwatchLive)
   end
 
   # Other scopes may use custom stacks.
