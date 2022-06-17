@@ -2,7 +2,8 @@ defmodule StopwatchWeb.StopwatchLive do
   use StopwatchWeb, :live_view
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, time: ~T[00:00:00], timer_status: :stopped)}
+    time = Stopwatch.Timer.get() |> IO.inspect()
+    {:ok, assign(socket, time: time, timer_status: :stopped)}
   end
 
   def render(assigns) do
@@ -21,8 +22,9 @@ defmodule StopwatchWeb.StopwatchLive do
   def handle_info(:tick, socket) do
     if socket.assigns.timer_status == :running do
       Process.send_after(self(), :tick, 1000)
-      time = Time.add(socket.assigns.time, 1, :second)
-      {:noreply, assign(socket, :time, time)}
+      # time = Time.add(socket.assigns.time, 1, :second)
+      Stopwatch.Timer.tick()
+      {:noreply, assign(socket, :time, Stopwatch.Timer.get())}
     else
       {:noreply, socket}
     end
