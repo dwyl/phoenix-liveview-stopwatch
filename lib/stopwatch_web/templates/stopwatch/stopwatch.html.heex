@@ -1,0 +1,9 @@
+<h1><%= @time |> Time.truncate(:second) |> Time.to_string()  %></h1>
+<%= if @timer_status == :stopped do %>
+  <button phx-click="start">Start</button>
+<% end %>
+
+<%= if @timer_status == :running do %>
+  <button phx-click="stop">Stop</button>
+<% end %>
+
