@@ -1,5 +1,29 @@
-# Stopwatch
-[![Elixir CI](https://github.com/dwyl/phoenix-liveview-stopwatch/actions/workflows/ci.yml/badge.svg)](https://github.com/dwyl/phoenix-liveview-stopwatch/actions/workflows/ci.yml)
+<div align="center">
+
+# `Phoenix` `LiveView` Stopwatch 
+
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/dwyl/phoenix-liveview-stopwatch/Elixir%20CI?label=build&style=flat-square)](https://github.com/dwyl/phoenix-liveview-stopwatch/actions/workflows/ci.yml)
+[![codecov.io](https://img.shields.io/codecov/c/github/dwyl/phoenix-liveview-stopwatch/main.svg?style=flat-square)](http://codecov.io/github/dwyl/phoenix-liveview-stopwatch?branch=main)
+[![Hex.pm](https://img.shields.io/hexpm/v/phoenix-liveview-stopwatch?color=brightgreen&style=flat-square)](https://hex.pm/packages/phoenix-liveview-stopwatch)
+[![Libraries.io dependency status](https://img.shields.io/librariesio/release/hex/phoenix-liveview-stopwatch?logoColor=brightgreen&style=flat-square)](https://libraries.io/hex/phoenix-liveview-stopwatch)
+[![docs](https://img.shields.io/badge/docs-maintained-brightgreen?style=flat-square)](https://hexdocs.pm/phoenix-liveview-stopwatch/api-reference.html)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square)](https://github.com/dwyl/phoenix-liveview-stopwatch/issues)
+[![HitCount](http://hits.dwyl.com/dwyl/phoenix-liveview-stopwatch.svg)](http://hits.dwyl.com/dwyl/phoenix-liveview-stopwatch)
+
+</div>
+
+## Why? 💡
+
+We wanted to build the **simplest possible _shared_ stopwatch**
+as a self-contained
+[***experiment***](https://github.com/dwyl/technology-stack/issues/96)
+to 
+`Phoenix LiveView` lets us build RealTime collaborative apps
+without writing a line of `JavaScript`.
+
+
+## How? 💻
+
 
 
 - Create new phoenix "barebone" Phonenix application:
