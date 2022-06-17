@@ -106,3 +106,146 @@ Finally create the templates in `lib/stopwatch_web/templates/stopwatch/stopwatch
 
 If you run the server with `mix phx.server` you should now be able
 to start/stop the stopwatch.
+
+## Sync Stopwatch
+
+So far the application will create a new timer for each client.
+To be able to sync a timer between all the clients we can move the
+stopwatch logic to its own module and use `Agent`.
+Create `lib/stopwatch/timer.ex` file and add the folowing content:
+
+```elixir
+defmodule Stopwatch.Timer do
+  use Agent
+  alias Phoenix.PubSub
+
+  def start_link(opts) do
+    Agent.start_link(fn -> {:stopped, ~T[00:00:00]} end, opts)
+  end
+
+  def get_timer_state(timer) do
+    Agent.get(timer, fn state -> state end)
+  end
+
+  def start_timer(timer) do
+    Agent.update(timer, fn {_timer_status, time} -> {:running, time} end)
+    notify()
+  end
+
+  def stop_timer(timer) do
+    Agent.update(timer, fn {_timer_status, time} -> {:stopped, time} end)
+    notify()
+  end
+
+  def tick(timer) do
+    Agent.update(timer, fn {timer_status, timer} ->
+      {timer_status, Time.add(timer, 1, :second)}
+    end)
+
+    notify()
+  end
+
+  def subscribe() do
+    PubSub.subscribe(Stopwatch.PubSub, "liveview_stopwatch")
+  end
+
+  def notify() do
+    PubSub.broadcast(Stopwatch.PubSub, "liveview_stopwatch", :timer_updated)
+  end
+end
+```
+
+The agent define the state of the stopwatch as a tuple `{timer_status, time}`
+We have define the `get_timer_state`, `start_timer`, `stop_timer` and `tick`
+function which are responsible for updating the tuple.
+
+Finally the last two funtions `subscribe` and `notify` are responsible for
+listening and sending the `:timer_updated` event via PubSub to the clients.
+
+
+
+Now we have the Timer agent defined we can tell the application to create
+a stopwatch when the application start.
+Update the `lib/stopwatch/application.ex` file to add the `StopwatchTimer`
+in the supervisor:
+
+```elixir
+    children = [
+      # Start the Telemetry supervisor
+      StopwatchWeb.Telemetry,
+      # Start the PubSub system
+      {Phoenix.PubSub, name: Stopwatch.PubSub},
+      # Start the Endpoint (http/https)
+      StopwatchWeb.Endpoint,
+      # Start a worker by calling: Stopwatch.Worker.start_link(arg)
+      # {Stopwatch.Worker, arg}
+      {Stopwatch.Timer, name: Stopwatch.Timer} # Create timer
+    ]
+```
+
+We define the timer name as `Stopwatch.Timer`. This name could be any atom and
+doesn't have to be an existing module name. It is just a unique way to find
+our timer.
+
+We can now update our liveview logic to use the function defined in `Stopwatch.Timer`.
+Update `lib/stopwatch_web/live/stopwatch_live.ex`:
+
+```elixir
+defmodule StopwatchWeb.StopwatchLive do
+  use StopwatchWeb, :live_view
+
+  def mount(_params, _session, socket) do
+    if connected?(socket), do: Stopwatch.Timer.subscribe()
+
+    {timer_status, time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
+    {:ok, assign(socket, time: time, timer_status: timer_status)}
+  end
+
+  def render(assigns) do
+    Phoenix.View.render(StopwatchWeb.StopwatchView, "stopwatch.html", assigns)
+  end
+
+  def handle_event("start", _value, socket) do
+    Process.send_after(self(), :tick, 1000)
+    Stopwatch.Timer.start_timer(Stopwatch.Timer)
+    {:noreply, socket}
+  end
+
+  def handle_event("stop", _value, socket) do
+    Stopwatch.Timer.stop_timer(Stopwatch.Timer)
+    {:noreply, socket}
+  end
+
+  def handle_info(:timer_updated, socket) do
+    {timer_status, time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
+    {:noreply, assign(socket, time: time, timer_status: timer_status)}
+  end
+
+  def handle_info(:tick, socket) do
+    {timer_status, _time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
+
+    if timer_status == :running do
+      Process.send_after(self(), :tick, 1000)
+      Stopwatch.Timer.tick(Stopwatch.Timer)
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
+  end
+end
+```
+
+On `mount` when the socket is connected we subscribe the client to the
+PubSub channel. This will allow our liveview to listen for events from
+other clients.
+
+In the  `start`, `stop` and `tick` events we are now calling respectively
+`start_timer`, `stop_timer` and `tick` functions from `Timer`, and we return
+`{:ok, socket}` without any changes on the `assigns`.
+All the updates is now down on the new `handle_info(:timer_updated, socket)`
+function. The `:timer_updated` event is sent by PubSub each time the timer
+state is changed.
+
+
+If you run the application on two different clients you should now have a synchronised
+stopwatch!
