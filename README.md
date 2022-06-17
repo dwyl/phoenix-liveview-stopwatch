@@ -249,3 +249,45 @@ state is changed.
 
 If you run the application on two different clients you should now have a synchronised
 stopwatch!
+
+To test our new `Stopwatch.Timer` agent, we can add the following content in
+`test/stopwatch/timer_test.exs`:
+
+```elixir
+defmodule Stopwatch.TimerTest do
+  use ExUnit.Case, async: true
+
+  setup context do
+    start_supervised!({Stopwatch.Timer, name: context.test})
+    %{timer: context.test}
+  end
+
+  test "Timer agent is working!", %{timer: timer} do
+    assert {:stopped, ~T[00:00:00]} == Stopwatch.Timer.get_timer_state(timer)
+    assert :ok = Stopwatch.Timer.start_timer(timer)
+    assert :ok = Stopwatch.Timer.tick(timer)
+    assert {:running, time} = Stopwatch.Timer.get_timer_state(timer)
+    assert Time.truncate(time, :second) == ~T[00:00:01]
+    assert :ok = Stopwatch.Timer.stop_timer(timer)
+    assert {:stopped, _time} = Stopwatch.Timer.get_timer_state(timer)
+  end
+
+  
+  test "Timer is reset", %{timer: timer} do
+    assert :ok = Stopwatch.Timer.start_timer(timer)
+    :ok = Stopwatch.Timer.tick(timer)
+    :ok = Stopwatch.Timer.tick(timer)
+    {:running, time} = Stopwatch.Timer.get_timer_state(timer)
+    assert Time.truncate(time, :second) == ~T[00:00:02]
+    Stopwatch.Timer.reset(timer)
+    assert {:stopped, ~T[00:00:00]} == Stopwatch.Timer.get_timer_state(timer)
+  end
+end
+```
+
+We use the `setup` function to create a new timer for each test.
+`start_supervised!` which takes care of creating and stopping the process timer
+for the tests. Because `mix run` will automatically run the `Timer` defined in
+`application.ex`, ie the Timer with the name `Stopwatch.Timer` we want to create
+new timers for the tests using other names to avoid conflicts. This is why we
+use `context.test` to define the name of the test Timer process.

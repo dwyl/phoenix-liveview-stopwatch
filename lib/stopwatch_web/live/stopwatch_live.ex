@@ -23,6 +23,11 @@ defmodule StopwatchWeb.StopwatchLive do
     {:noreply, socket}
   end
 
+  def handle_event("reset", _value, socket) do
+    Stopwatch.Timer.reset(Stopwatch.Timer)
+    {:noreply, socket}
+  end
+
   def handle_info(:timer_updated, socket) do
     {timer_status, time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
     {:noreply, assign(socket, time: time, timer_status: timer_status)}

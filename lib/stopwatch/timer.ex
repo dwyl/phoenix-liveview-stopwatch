@@ -28,6 +28,11 @@ defmodule Stopwatch.Timer do
     notify()
   end
 
+  def reset(timer) do
+    Agent.update(timer, fn _state -> {:stopped, ~T[00:00:00]} end)
+    notify()
+  end
+
   def subscribe() do
     PubSub.subscribe(Stopwatch.PubSub, "liveview_stopwatch")
   end
