@@ -1,6 +1,6 @@
 <div align="center">
 
-# `Phoenix` `LiveView` Stopwatch ⏱️
+# `Phoenix` `LiveView` _Stopwatch_ ⏱️
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/dwyl/phoenix-liveview-stopwatch/Elixir%20CI?label=build&style=flat-square)](https://github.com/dwyl/phoenix-liveview-stopwatch/actions/workflows/ci.yml)
 [![codecov.io](https://img.shields.io/codecov/c/github/dwyl/phoenix-liveview-stopwatch/main.svg?style=flat-square)](http://codecov.io/github/dwyl/phoenix-liveview-stopwatch?branch=main)
@@ -17,19 +17,23 @@
 We wanted to build the **simplest possible _shared_ stopwatch**
 as a self-contained
 [***experiment***](https://github.com/dwyl/technology-stack/issues/96)
-to 
-test how easy complex/simple it would be.
+to  test how easy complex/simple it would be.
 
 ## What? 🤷‍♀️
 
 `Phoenix LiveView` lets us build RealTime collaborative apps
 without writing a line of `JavaScript`.
-
+This is an _example_ that anyone can understand in **`10 mins`**.
 
 ## How? 💻
 
+Try the finished app before you try to build it:
 
+https://liveview-stopwatch.fly.dev/
 
+![stopwatch](https://user-images.githubusercontent.com/194400/174432051-5199369d-df07-4809-a758-24d3738535f7.png)
+
+Once you've tried it, come back and **_build_ it**!
 ### Create a new "barebones" Phonenix application:
 
 ```sh
