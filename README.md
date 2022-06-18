@@ -17,7 +17,9 @@
 We wanted to build the **simplest possible _shared_ stopwatch**
 as a self-contained
 [***experiment***](https://github.com/dwyl/technology-stack/issues/96)
-to  test how easy complex/simple it would be.
+to test how easy complex/simple it would be
+before using this in our main
+[**`app`**](https://github.com/dwyl/app)
 
 ## What? 🤷‍♀️
 
