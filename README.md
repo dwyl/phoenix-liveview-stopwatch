@@ -110,8 +110,28 @@ to start/stop the stopwatch.
 ## Sync Stopwatch
 
 So far the application will create a new timer for each client.
-To be able to sync a timer between all the clients we can move the
-stopwatch logic to its own module and use `Agent`.
+That is good but doesn't really showcase the power of `LiveView`.
+We might aswell just be using _any_ other framework/library.
+To really see the power of using `LiveView`,
+we're going to use its' super power - 
+lightweight websocket "channels" -
+to create a _collaborative_ stopwatch experience!
+
+<!--
+> **Note**: this example will only have a single timer
+> that is shared across multiple clients.
+> It's intended as a simple showcase not a real-world app.
+> Though you could easily use this 
+> as the basis for a reaction-time game
+> that kids could play for _hours_. 
+-->
+
+To be able to sync a timer 
+between all the connected clients 
+we can move the stopwatch logic 
+to its own module and use 
+[`Agent`](https://elixir-lang.org/getting-started/mix-otp/agent.html).
+
 Create `lib/stopwatch/timer.ex` file and add the folowing content:
 
 ```elixir
@@ -155,19 +175,25 @@ defmodule Stopwatch.Timer do
 end
 ```
 
-The agent define the state of the stopwatch as a tuple `{timer_status, time}`
-We have define the `get_timer_state`, `start_timer`, `stop_timer` and `tick`
-function which are responsible for updating the tuple.
+The agent defines the state of the stopwatch 
+as a tuple `{timer_status, time}`.
+We defined the 
+`get_timer_state/1`, `start_timer/1`, `stop_timer/1` 
+and `tick/1` functions 
+which are responsible for updating the tuple.
 
-Finally the last two funtions `subscribe` and `notify` are responsible for
-listening and sending the `:timer_updated` event via PubSub to the clients.
+Finally the last two funtions: 
+`subscribe/0` and `notify/0` 
+are responsible for listening and sending 
+the `:timer_updated` event via PubSub to the clients.
 
 
-
-Now we have the Timer agent defined we can tell the application to create
-a stopwatch when the application start.
-Update the `lib/stopwatch/application.ex` file to add the `StopwatchTimer`
-in the supervisor:
+Now we have the Timer agent defined 
+we can tell the application to create
+a stopwatch when the application starts.
+Update the `lib/stopwatch/application.ex` file 
+to add the `StopwatchTimer`
+in the supervision tree:
 
 ```elixir
     children = [
