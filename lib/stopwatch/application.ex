@@ -13,9 +13,10 @@ defmodule Stopwatch.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Stopwatch.PubSub},
       # Start the Endpoint (http/https)
-      StopwatchWeb.Endpoint
+      StopwatchWeb.Endpoint,
       # Start a worker by calling: Stopwatch.Worker.start_link(arg)
       # {Stopwatch.Worker, arg}
+      {Stopwatch.Timer, name: Stopwatch.Timer}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

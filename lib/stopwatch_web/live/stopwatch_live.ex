@@ -2,7 +2,10 @@ defmodule StopwatchWeb.StopwatchLive do
   use StopwatchWeb, :live_view
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, time: ~T[00:00:00], timer_status: :stopped)}
+    if connected?(socket), do: Stopwatch.Timer.subscribe()
+
+    {timer_status, time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
+    {:ok, assign(socket, time: time, timer_status: timer_status)}
   end
 
   def render(assigns) do
@@ -11,18 +14,32 @@ defmodule StopwatchWeb.StopwatchLive do
 
   def handle_event("start", _value, socket) do
     Process.send_after(self(), :tick, 1000)
-    {:noreply, assign(socket, :timer_status, :running)}
+    Stopwatch.Timer.start_timer(Stopwatch.Timer)
+    {:noreply, socket}
   end
 
   def handle_event("stop", _value, socket) do
-    {:noreply, assign(socket, :timer_status, :stopped)}
+    Stopwatch.Timer.stop_timer(Stopwatch.Timer)
+    {:noreply, socket}
+  end
+
+  def handle_event("reset", _value, socket) do
+    Stopwatch.Timer.reset(Stopwatch.Timer)
+    {:noreply, socket}
+  end
+
+  def handle_info(:timer_updated, socket) do
+    {timer_status, time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
+    {:noreply, assign(socket, time: time, timer_status: timer_status)}
   end
 
   def handle_info(:tick, socket) do
-    if socket.assigns.timer_status == :running do
+    {timer_status, _time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
+
+    if timer_status == :running do
       Process.send_after(self(), :tick, 1000)
-      time = Time.add(socket.assigns.time, 1, :second)
-      {:noreply, assign(socket, :time, time)}
+      Stopwatch.Timer.tick(Stopwatch.Timer)
+      {:noreply, socket}
     else
       {:noreply, socket}
     end
