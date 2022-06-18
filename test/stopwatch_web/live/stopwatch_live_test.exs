@@ -10,5 +10,8 @@ defmodule StopwatchW.StopwatchLiveTest do
     render_click(view, "start")
     Process.sleep(1000)
     assert render_click(view, "stop") =~ "00:00:01"
+
+    # reset
+    assert render_click(view, "reset") =~ "00:00:00"
   end
 end
