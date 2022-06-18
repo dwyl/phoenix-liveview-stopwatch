@@ -209,12 +209,15 @@ in the supervision tree:
     ]
 ```
 
-We define the timer name as `Stopwatch.Timer`. This name could be any atom and
-doesn't have to be an existing module name. It is just a unique way to find
-our timer.
+We define the timer name as `Stopwatch.Timer`. 
+This name could be any `atom` 
+and doesn't have to be an existing module name. 
+It is just a unique way to find the timer.
 
-We can now update our liveview logic to use the function defined in `Stopwatch.Timer`.
-Update `lib/stopwatch_web/live/stopwatch_live.ex`:
+We can now update our `LiveView` logic 
+to use the function defined in `Stopwatch.Timer`.
+Update 
+`lib/stopwatch_web/live/stopwatch_live.ex`:
 
 ```elixir
 defmodule StopwatchWeb.StopwatchLive do
@@ -261,22 +264,38 @@ defmodule StopwatchWeb.StopwatchLive do
 end
 ```
 
-On `mount` when the socket is connected we subscribe the client to the
-PubSub channel. This will allow our liveview to listen for events from
-other clients.
+In `mount/3`, when the socket is connected 
+we subscribe the client to the PubSub channel. 
+This will allow our `LiveView` 
+to listen for events from other clients.
 
-In the  `start`, `stop` and `tick` events we are now calling respectively
-`start_timer`, `stop_timer` and `tick` functions from `Timer`, and we return
-`{:ok, socket}` without any changes on the `assigns`.
-All the updates is now down on the new `handle_info(:timer_updated, socket)`
-function. The `:timer_updated` event is sent by PubSub each time the timer
-state is changed.
+The  `start`, `stop` and `tick` events 
+are now calling the
+`start_timer`, `stop_timer` and `tick` functions 
+from `Timer`, 
+and we return `{:ok, socket}` 
+without any changes on the `assigns`.
+All the updates are now done 
+in the new 
+`handle_info(:timer_updated, socket)`
+function. 
+The `:timer_updated` event 
+is sent by `PubSub` 
+each time the timer state is changed.
 
 
-If you run the application on two different clients you should now have a synchronised
-stopwatch!
+If you run the application:
+```sh
+mix phx.server
+```
 
-To test our new `Stopwatch.Timer` agent, we can add the following content in
+And open it in two different clients 
+you should now have a synchronised stopwatch!
+
+![liveview-stopwatch-sync](https://user-images.githubusercontent.com/194400/174431168-d37e5382-f3e1-4c99-bd3b-bd3500a5035e.gif)
+
+To _test_ our new `Stopwatch.Timer` agent, 
+we can add the following code to
 `test/stopwatch/timer_test.exs`:
 
 ```elixir
@@ -311,9 +330,29 @@ defmodule Stopwatch.TimerTest do
 end
 ```
 
-We use the `setup` function to create a new timer for each test.
-`start_supervised!` which takes care of creating and stopping the process timer
-for the tests. Because `mix run` will automatically run the `Timer` defined in
-`application.ex`, ie the Timer with the name `Stopwatch.Timer` we want to create
-new timers for the tests using other names to avoid conflicts. This is why we
-use `context.test` to define the name of the test Timer process.
+We use the `setup` function 
+to create a new timer for each test.
+`start_supervised!` takes care of creating 
+and stopping the process timer for the tests. 
+Since `mix run` will automatically run the `Timer` 
+defined in `application.ex`, 
+i.e. the Timer with the name `Stopwatch.Timer` 
+we want to create new timers 
+for the tests using other names to avoid conflicts. 
+This is why we use `context.test` 
+to define the name of the test `Timer` process.
+
+
+## What's next?
+
+If you found this example useful, 
+please ⭐️ the GitHub repository
+so we (_and others_) know you liked it!
+
+Your feedback is always very welcome!
+
+If you think of other features
+you want to add,
+please 
+[**open an issue**](https://github.com/dwyl/phoenix-liveview-stopwatch/issues)
+to discuss!
