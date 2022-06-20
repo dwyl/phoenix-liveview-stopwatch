@@ -1,14 +1,46 @@
-# Stopwatch
-[![Elixir CI](https://github.com/dwyl/phoenix-liveview-stopwatch/actions/workflows/ci.yml/badge.svg)](https://github.com/dwyl/phoenix-liveview-stopwatch/actions/workflows/ci.yml)
+<div align="center">
 
+# `Phoenix` `LiveView` _Stopwatch_ ⏱️
 
-- Create new phoenix "barebone" Phonenix application:
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/dwyl/phoenix-liveview-stopwatch/Elixir%20CI?label=build&style=flat-square)](https://github.com/dwyl/phoenix-liveview-stopwatch/actions/workflows/ci.yml)
+[![codecov.io](https://img.shields.io/codecov/c/github/dwyl/phoenix-liveview-stopwatch/main.svg?style=flat-square)](http://codecov.io/github/dwyl/phoenix-liveview-stopwatch?branch=main)
+[![Hex.pm](https://img.shields.io/hexpm/v/phoenix?color=brightgreen&style=flat-square)](https://hex.pm/packages/phoenix)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square)](https://github.com/dwyl/phoenix-liveview-stopwatch/issues)
+[![HitCount](http://hits.dwyl.com/dwyl/phoenix-liveview-stopwatch.svg)](http://hits.dwyl.com/dwyl/phoenix-liveview-stopwatch)
+
+</div>
+
+## Why? 💡
+
+We wanted to build the **simplest possible _shared_ stopwatch**
+as a self-contained
+[***experiment***](https://github.com/dwyl/technology-stack/issues/96)
+to test how easy complex/simple it would be
+before using this in our main
+[**`app`**](https://github.com/dwyl/app)
+
+## What? 🤷‍♀️
+
+`Phoenix LiveView` lets us build RealTime collaborative apps
+without writing a line of `JavaScript`.
+This is an _example_ that anyone can understand in **`10 mins`**.
+
+## How? 💻
+
+Try the finished app before you try to build it:
+
+https://liveview-stopwatch.fly.dev/
+
+![stopwatch](https://user-images.githubusercontent.com/194400/174432051-5199369d-df07-4809-a758-24d3738535f7.png)
+
+Once you've tried it, come back and **_build_ it**!
+### Create a new "barebones" Phonenix application:
 
 ```sh
 mix phx.new stopwatch --no-mailer --no-dashboard --no-gettext --no-ecto
 ```
 
-- Create folders and files for liveView stopwatch code:
+### Create folders and files for `LiveView`:
 
 ```sh
 mkdir lib/stopwatch_web/live
@@ -18,14 +50,21 @@ mkdir lib/stopwatch_web/templates/stopwatch
 touch lib/stopwatch_web/templates/stopwatch/stopwatch.html.heex
 ```
 
-- Update router. In `lib/stopwatch_web/router.ex` update the "/" endpoint:
+### Update router 
+
+In `lib/stopwatch_web/router.ex` update the "/" endpoint:
 
 ```elixir
 live("/", StopwatchLive)
 ```
 
-- Create liveView logic (mount, render, handle_event, handle_info) 
-in StopwatchLive module. In `lib/stopwatch_web/live/stopwatch_live.ex` add:
+### Create `LiveView` logic 
+
+Create the 
+`mount`, `render`, `handle_event` and `handle_info` 
+functions 
+in StopwatchLive module: 
+`lib/stopwatch_web/live/stopwatch_live.ex` 
 
 ```elixir
 defmodule StopwatchWeb.StopwatchLive do
@@ -76,7 +115,11 @@ Finally the `handle_info` function manages the `:tick` event. If the status is
 `:running` when send another `:tick` event after 1 second and increment the `:timer`
 value with 1 second.
 
-- Update `lib/stopwatch_web/templates/layout/root.hml.heex` with the following body:
+### Update Root Template
+
+Update the 
+`lib/stopwatch_web/templates/layout/root.hml.heex` 
+with the following body:
 
 ```html
 <body>
@@ -84,14 +127,19 @@ value with 1 second.
 </body>
 ```
 
-- Create the `StopwatchView` module in `lib/stopwatch_web/views/stopwatch_view.ex` 
+### Create View
+
+Create the `StopwatchView` module in `lib/stopwatch_web/views/stopwatch_view.ex` 
 
 ```elixir defmodule StopwatchWeb.StopwatchView do
   use StopwatchWeb, :view
 end
 ```
 
-Finally create the templates in `lib/stopwatch_web/templates/stopwatch/stopwatch.html.heex`:
+### Create Template
+
+Finally create the templates in 
+`lib/stopwatch_web/templates/stopwatch/stopwatch.html.heex`:
 
 ```html
 <h1><%= @time |> Time.truncate(:second) |> Time.to_string()  %></h1>
@@ -104,7 +152,9 @@ Finally create the templates in `lib/stopwatch_web/templates/stopwatch/stopwatch
 <% end %>
 ```
 
-If you run the server with `mix phx.server` you should now be able
+If you run the server with 
+`mix phx.server` 
+you should now be able
 to start/stop the stopwatch.
 
 ## Sync Stopwatch
