@@ -39,6 +39,16 @@ defmodule Stopwatch.TimerServer do
   end
 
   @impl true
+  def handle_call(:state, _from, stopwatch) do
+    {:reply, stopwatch, stopwatch}
+  end
+
+  @impl true
+  def handle_call(:reset, _from, _stopwatch) do
+    {:reply, :reset, {:stopped, ~T[00:00:00]}}
+  end
+
+  @impl true
   def handle_info(:tick, {status, time} = stopwatch) do
     if status == :running do
       Process.send_after(self(), :tick, 1000)
@@ -47,16 +57,6 @@ defmodule Stopwatch.TimerServer do
     else
       {:noreply, stopwatch}
     end
-  end
-
-  @impl true
-  def handle_call(:state, _from, stopwatch) do
-    {:reply, stopwatch, stopwatch}
-  end
-
-  @impl true
-  def handle_call(:reset, _from, _stopwatch) do
-    {:reply, :reset, {:stopped, ~T[00:00:00]}}
   end
 
   def subscribe() do
