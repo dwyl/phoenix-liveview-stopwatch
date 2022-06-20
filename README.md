@@ -115,7 +115,7 @@ Finally the `handle_info` function manages the `:tick` event. If the status is
 `:running` when send another `:tick` event after 1 second and increment the `:timer`
 value with 1 second.
 
-### Update Template
+### Update Root Template
 
 Update the 
 `lib/stopwatch_web/templates/layout/root.hml.heex` 
