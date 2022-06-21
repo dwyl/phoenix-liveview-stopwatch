@@ -33,9 +33,12 @@ defmodule Stopwatch.Timer do
     notify()
   end
 
+  # coveralls-ignore-start
   def subscribe() do
     PubSub.subscribe(Stopwatch.PubSub, "liveview_stopwatch")
   end
+
+  # coveralls-ignore-end
 
   def notify() do
     PubSub.broadcast(Stopwatch.PubSub, "liveview_stopwatch", :timer_updated)

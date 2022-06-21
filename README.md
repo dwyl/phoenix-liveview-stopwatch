@@ -393,6 +393,187 @@ This is why we use `context.test`
 to define the name of the test `Timer` process.
 
 
+## GenServer
+
+One problem with our current code is if the stopwatch is running and the
+client is closed (ex: browser tab closed) then the `tick` actions are stopped
+however the stopwatch status is still `:running`.
+This is because our live logic is responsible for updating the timer with:
+
+```elixir
+  def handle_info(:tick, socket) do
+    {timer_status, _time} = Stopwatch.Timer.get_timer_state(Stopwatch.Timer)
+
+    if timer_status == :running do
+      Process.send_after(self(), :tick, 1000)
+      Stopwatch.Timer.tick(Stopwatch.Timer)
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
+  end
+```
+
+as `Process.send_after` will send the `:tick` message after 1s.
+When the client is closed the live process is also closed and the `tick`
+message is not sent anymore.
+
+Instead we want to move the ticking logic to the `Timer`.
+However `Agent` are not ideal to work with `Process.send_after` function and
+instead we are going to rewrite our `Timer` module using `GenServer`.
+
+Create the `lib/stopwatch/timer_server.ex` file and add the following:
+
+```elixir
+defmodule Stopwatch.TimerServer do
+  use GenServer
+  alias Phoenix.PubSub
+
+  # Client API
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, :ok, opts)
+  end
+
+  def start_timer(server) do
+    GenServer.call(server, :start)
+  end
+
+  def stop_timer(server) do
+    GenServer.call(server, :stop)
+  end
+
+  def get_timer_state(server) do
+    GenServer.call(server, :state)
+  end
+
+  def reset(server) do
+    GenServer.call(server, :reset)
+  end
+
+  # Server
+  @impl true
+  def init(:ok) do
+    {:ok, {:stopped, ~T[00:00:00]}}
+  end
+
+  @impl true
+  def handle_call(:start, _from, {_status, time}) do
+    Process.send_after(self(), :tick, 1000)
+    {:reply, :running, {:running, time}}
+  end
+
+  @impl true
+  def handle_call(:stop, _from, {_status, time}) do
+    {:reply, :stopped, {:stopped, time}}
+  end
+
+  @impl true
+  def handle_info(:tick, {status, time} = stopwatch) do
+    if status == :running do
+      Process.send_after(self(), :tick, 1000)
+      notify()
+      {:noreply, {status, Time.add(time, 1, :second)}}
+    else
+      {:noreply, stopwatch}
+    end
+  end
+
+  @impl true
+  def handle_call(:state, _from, stopwatch) do
+    {:reply, stopwatch, stopwatch}
+  end
+
+  @impl true
+  def handle_call(:reset, _from, _stopwatch) do
+    {:reply, :reset, {:stopped, ~T[00:00:00]}}
+  end
+
+  def subscribe() do
+    PubSub.subscribe(Stopwatch.PubSub, "liveview_stopwatch")
+  end
+
+  def notify() do
+    PubSub.broadcast(Stopwatch.PubSub, "liveview_stopwatch", :timer_updated)
+  end
+end
+```
+
+Compared to `Agent`, `GenServer` splits functions into client and server logic.
+We can define the same client api functions name and use `hand_call` to send
+messages to the `GenServer` to `stop`, `start` and `reset` the stopwatch.
+
+The ticking process is now done by calling `Process.send_after(self(), :tick 1000)`.
+The `GenServer` will then manage the `tick` events with `handle_info(:tick, stopwatch)`.
+
+Now that we have defined our server, we need to update `lib/stopwatch/application.ex` to use
+the `GenServer` instead of the `Agent`:
+
+```elixir
+    children = [
+      # Start the Telemetry supervisor
+      StopwatchWeb.Telemetry,
+      # Start the PubSub system
+      {Phoenix.PubSub, name: Stopwatch.PubSub},
+      # Start the Endpoint (http/https)
+      StopwatchWeb.Endpoint,
+      # Start a worker by calling: Stopwatch.Worker.start_link(arg)
+      # {Stopwatch.Worker, arg}
+      # {Stopwatch.Timer, name: Stopwatch.Timer}
+      {Stopwatch.TimerServer, name: Stopwatch.TimerServer}
+    ]
+```
+
+We have commented our `Stopwatch.Timer` agent and added the GenServer:
+`{Stopwatch.TimerServer, name: Stopwatch.TimerServer}`
+
+
+Finally we can update our live logic to use Stopwatch.TimerServer and to
+remove the `tick` logic from it:
+
+
+```elixir
+defmodule StopwatchWeb.StopwatchLive do
+  use StopwatchWeb, :live_view
+  alias Stopwatch.TimerServer
+
+  def mount(_params, _session, socket) do
+    if connected?(socket), do: TimerServer.subscribe()
+
+    {timer_status, time} = TimerServer.get_timer_state(Stopwatch.TimerServer)
+    {:ok, assign(socket, time: time, timer_status: timer_status)}
+  end
+
+  def render(assigns) do
+    Phoenix.View.render(StopwatchWeb.StopwatchView, "stopwatch.html", assigns)
+  end
+
+  def handle_event("start", _value, socket) do
+    :running = TimerServer.start_timer(Stopwatch.TimerServer)
+    TimerServer.notify()
+    {:noreply, socket}
+  end
+
+  def handle_event("stop", _value, socket) do
+    :stopped = TimerServer.stop_timer(Stopwatch.TimerServer)
+    TimerServer.notify()
+    {:noreply, socket}
+  end
+
+  def handle_event("reset", _value, socket) do
+    :reset = TimerServer.reset(Stopwatch.TimerServer)
+    TimerServer.notify()
+    {:noreply, socket}
+  end
+
+  def handle_info(:timer_updated, socket) do
+    {timer_status, time} = TimerServer.get_timer_state(Stopwatch.TimerServer)
+
+    {:noreply, assign(socket, time: time, timer_status: timer_status)}
+  end
+end
+```
+
 ## What's next?
 
 If you found this example useful, 
