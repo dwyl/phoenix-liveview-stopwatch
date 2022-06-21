@@ -499,15 +499,15 @@ defmodule Stopwatch.TimerServer do
 end
 ```
 
-Copmare to Agent, GenServer split functions into client and server logic.
+Compared to `Agent`, `GenServer` splits functions into client and server logic.
 We can define the same client api functions name and use `hand_call` to send
-message to the GenServer to stop, start, reset the stopwatch.
+messages to the `GenServer` to `stop`, `start` and `reset` the stopwatch.
 
 The ticking process is now done by calling `Process.send_after(self(), :tick 1000)`.
-The GenServer will then manage the ticks with `handle_info(:tick, stopwatch)`.
+The `GenServer` will then manage the `tick` events with `handle_info(:tick, stopwatch)`.
 
-Now that we have define our server we need to update `lib/stopwatch/application.ex` to use
-the GenServer instead of the Agent:
+Now that we have defined our server, we need to update `lib/stopwatch/application.ex` to use
+the `GenServer` instead of the `Agent`:
 
 ```elixir
     children = [
