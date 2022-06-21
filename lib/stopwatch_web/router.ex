@@ -14,5 +14,6 @@ defmodule StopwatchWeb.Router do
     pipe_through(:browser)
 
     live("/", StopwatchLive)
+    live("/stopwatch-js", StopwatchLiveJS)
   end
 end

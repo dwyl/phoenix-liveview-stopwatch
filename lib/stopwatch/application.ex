@@ -17,7 +17,8 @@ defmodule Stopwatch.Application do
       # Start a worker by calling: Stopwatch.Worker.start_link(arg)
       # {Stopwatch.Worker, arg}
       # {Stopwatch.Timer, name: Stopwatch.Timer}
-      {Stopwatch.TimerServer, name: Stopwatch.TimerServer}
+      {Stopwatch.TimerServer, name: Stopwatch.TimerServer},
+      {Stopwatch.TimerDB, name: Stopwatch.TimerDB}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
