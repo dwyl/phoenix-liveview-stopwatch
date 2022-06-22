@@ -9,6 +9,7 @@
     "lib/stopwatch_web.ex",
     "lib/stopwatch_web/views/error_helpers.ex",
     "lib/stopwatch_web/channels/user_socket.ex",
-    "lib/stopwatch_web/telemetry.ex"
+    "lib/stopwatch_web/telemetry.ex",
+    "lib/stopwatch/timer_db.ex"
   ]
 }
