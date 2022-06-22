@@ -7,11 +7,13 @@ defmodule Stopwatch.TimerDB do
   end
 
   def start_timer(db) do
-    Agent.update(db, fn _ -> {:running, NaiveDateTime.utc_now(), nil} end)
+    start = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
+    Agent.update(db, fn _ -> {:running, start, nil} end)
   end
 
   def stop_timer(db) do
-    Agent.update(db, fn {_, start, _} -> {:stopped, start, NaiveDateTime.utc_now()} end)
+    stop = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
+    Agent.update(db, fn {_, start, _} -> {:stopped, start, stop} end)
   end
 
   def get_timer_state(db) do
@@ -25,8 +27,6 @@ defmodule Stopwatch.TimerDB do
   def subscribe() do
     PubSub.subscribe(Stopwatch.PubSub, "liveview_stopwatch_js")
   end
-
-  # coveralls-ignore-end
 
   def notify() do
     PubSub.broadcast(Stopwatch.PubSub, "liveview_stopwatch_js", :timer_updated)

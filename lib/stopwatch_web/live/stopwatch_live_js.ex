@@ -8,6 +8,8 @@ defmodule StopwatchWeb.StopwatchLiveJS do
     # {timer_status, time} = TimerServer.get_timer_state(Stopwatch.TimerServer)
     # {:ok, assign(socket, time: time, timer_status: timer_status)}
     {status, start, stop} = TimerDB.get_timer_state(Stopwatch.TimerDB)
+    # if running
+    TimerDB.notify()
     {:ok, assign(socket, timer_status: status, start: start, stop: stop)}
   end
 
@@ -17,7 +19,6 @@ defmodule StopwatchWeb.StopwatchLiveJS do
 
   def handle_event("start", _value, socket) do
     TimerDB.start_timer(Stopwatch.TimerDB)
-    |> IO.inspect()
 
     TimerDB.notify()
     {:noreply, socket}
@@ -37,7 +38,9 @@ defmodule StopwatchWeb.StopwatchLiveJS do
 
   def handle_info(:timer_updated, socket) do
     {timer_status, start, stop} = TimerDB.get_timer_state(Stopwatch.TimerDB)
+    socket = assign(socket, timer_status: timer_status, start: start, stop: stop)
 
-    {:noreply, assign(socket, timer_status: timer_status, start: start, stop: stop)}
+    {:noreply,
+     push_event(socket, "timerUpdated", %{timer_status: timer_status, start: start, stop: stop})}
   end
 end
