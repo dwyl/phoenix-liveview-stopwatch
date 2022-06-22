@@ -10,7 +10,25 @@
 
 </div>
 
-## Why? 💡
+- [`Phoenix` `LiveView` _Stopwatch_ ⏱️](#phoenix-liveview-stopwatch-️)
+- [Why? 💡](#why-)
+- [What? 🤷‍♀️](#what-️)
+- [How? 💻](#how-)
+  - [Create a new "barebones" Phonenix application:](#create-a-new-barebones-phonenix-application)
+  - [Create folders and files for `LiveView`:](#create-folders-and-files-for-liveview)
+  - [Update `router.ex`](#update-routerex)
+  - [Create `LiveView` logic](#create-liveview-logic)
+  - [Update Root Template](#update-root-template)
+  - [Create View](#create-view)
+  - [Create Template](#create-template)
+  - [Sync Stopwatch](#sync-stopwatch)
+  - [`GenServer`](#genserver)
+  - [`Liveview` + `JavaScript`](#liveview--javascript)
+  - [What's _next_?](#whats-next)
+
+<br />
+  
+# Why? 💡
 
 We wanted to build the **simplest possible _shared_ stopwatch**
 as a self-contained
@@ -19,13 +37,13 @@ to test how easy complex/simple it would be
 before using this in our main
 [**`app`**](https://github.com/dwyl/app)
 
-## What? 🤷‍♀️
+# What? 🤷‍♀️
 
 `Phoenix LiveView` lets us build RealTime collaborative apps
 without writing a line of `JavaScript`.
 This is an _example_ that anyone can understand in **`10 mins`**.
 
-## How? 💻
+# How? 💻
 
 Try the finished app before you try to build it:
 
@@ -34,13 +52,13 @@ https://liveview-stopwatch.fly.dev/
 ![stopwatch](https://user-images.githubusercontent.com/194400/174432051-5199369d-df07-4809-a758-24d3738535f7.png)
 
 Once you've tried it, come back and **_build_ it**!
-### Create a new "barebones" Phonenix application:
+## Create a new "barebones" Phonenix application:
 
 ```sh
 mix phx.new stopwatch --no-mailer --no-dashboard --no-gettext --no-ecto
 ```
 
-### Create folders and files for `LiveView`:
+## Create folders and files for `LiveView`:
 
 ```sh
 mkdir lib/stopwatch_web/live
@@ -50,7 +68,7 @@ mkdir lib/stopwatch_web/templates/stopwatch
 touch lib/stopwatch_web/templates/stopwatch/stopwatch.html.heex
 ```
 
-### Update router 
+## Update `router.ex`
 
 In `lib/stopwatch_web/router.ex` update the "/" endpoint:
 
@@ -58,7 +76,7 @@ In `lib/stopwatch_web/router.ex` update the "/" endpoint:
 live("/", StopwatchLive)
 ```
 
-### Create `LiveView` logic 
+## Create `LiveView` logic 
 
 Create the 
 `mount`, `render`, `handle_event` and `handle_info` 
@@ -115,7 +133,7 @@ Finally the `handle_info` function manages the `:tick` event. If the status is
 `:running` when send another `:tick` event after 1 second and increment the `:timer`
 value with 1 second.
 
-### Update Root Template
+## Update Root Template
 
 Update the 
 `lib/stopwatch_web/templates/layout/root.hml.heex` 
@@ -127,7 +145,7 @@ with the following body:
 </body>
 ```
 
-### Create View
+## Create View
 
 Create the `StopwatchView` module in `lib/stopwatch_web/views/stopwatch_view.ex` 
 
@@ -136,7 +154,7 @@ Create the `StopwatchView` module in `lib/stopwatch_web/views/stopwatch_view.ex`
 end
 ```
 
-### Create Template
+## Create Template
 
 Finally create the templates in 
 `lib/stopwatch_web/templates/stopwatch/stopwatch.html.heex`:
@@ -393,7 +411,7 @@ This is why we use `context.test`
 to define the name of the test `Timer` process.
 
 
-## GenServer
+## `GenServer`
 
 One problem with our current code is if the stopwatch is running and the
 client is closed (ex: browser tab closed) then the `tick` actions are stopped
@@ -574,20 +592,28 @@ defmodule StopwatchWeb.StopwatchLive do
 end
 ```
 
-## Liveview + JS
+## `Liveview` + `JavaScript`
 
-On this section we combine LiveView and JavaScript,
-to create the stopwatch logic. On start/stop/reset the liveview will save
+This section will combine 
+`LiveView` and `JavaScript`
+to create the stopwatch logic. 
+On `start|stop|reset` 
+the `LiveView` will save
 the state of the stopwatch.
-The javsscript is then responsible to start/stop the timer.
+The `JavaScript` is then responsible 
+for handling the `start|stop`.
 
-on the router we have define a new endpoint `/stopwatch-js`:
+Open the `lib/stopwatch_web/router.ex` file 
+and define a new endpoint `/stopwatch-js`:
 
 ```elixir
 live("/stopwatch-js", StopwatchLiveJS)
 ```
 
-And the `StopwatchLiveJS` module is define in `lib/stopwatch_web/live/stopwatch_live_js.ex`:
+Next create a new file at:
+`lib/stopwatch_web/live/stopwatch_live_js.ex`
+and add the
+`StopwatchLiveJS` module definition:
 
 
 ```elixir
@@ -638,18 +664,28 @@ defmodule StopwatchWeb.StopwatchLiveJS do
 end
 ```
 
-`TimerDB` is an agent used to store the stopwatch status as a tuple:
+`TimerDB` is an `Agent` used 
+to store the stopwatch status as a `tuple`:
 `{status, start_time, stop_time}`
 
-Because we have created the project with `mix phx.new --no-ecto` it was easier
-to use Agent but you can also use a database (e.g. Postgres) to store the state
+Since we have created the project with 
+`mix phx.new --no-ecto` 
+it was easier
+to use `Agent` but you can also use a `database`
+(e.g. `Postgres`) 
+to store the state
 of the stopwatch.
 
-The module listen for "start", "stop" and "reset" events, save the updated status
-using the `TimerDB` module and notify the changes to other clients with 
+The module listens for 
+"start", "stop" and "reset" events, 
+saves the updated status
+using the `TimerDB` module 
+and notifies the changes 
+to connected clients with 
 `handle_info`
 
-The template is defined in `lib/stopwatch_web/templates/stopwatch/stopwatch_js.html.heex`:
+The template is defined in:
+`lib/stopwatch_web/templates/stopwatch/stopwatch_js.html.heex`:
 
 ```html
 <h1 id="timer">00:00:00</h1>
@@ -665,7 +701,9 @@ The template is defined in `lib/stopwatch_web/templates/stopwatch/stopwatch_js.h
 <button phx-click="reset">Reset</button>
 ```
 
-Finally we can update the `assets/js/app.js` file to add the stopwatch logic:
+Finally update the 
+`assets/js/app.js` file 
+to add the stopwatch logic:
 
 ```js
 timer = document.getElementById("timer")
@@ -715,25 +753,31 @@ function timer_text(start, current) {
 }
 ```
 
-The important part is where we trigger the ticking process:
+The important part is 
+where we trigger the ticking process:
 
 ```js
 window.addEventListener("phx:timerUpdated", e => {
   if (e.detail.timer_status == "running" && !T.ticking) {
-          T.ticking = true
-          T.timerInterval = setInterval(function() {
-            text = timer_text(new Date(e.detail.start), Date.now())
-            timer.textContent = text
-          }, 1000);
+    T.ticking = true
+    T.timerInterval = setInterval(function() {
+      text = timer_text(new Date(e.detail.start), Date.now())
+      timer.textContent = text
+    }, 1000);
   }
 })
+```
  
-`setInterval` is call when the stopwatch is started and we every 1s we compare
-the start time (unix time/epoch) to the current `Date.now() time
+`setInterval` is called 
+when the stopwatch is started 
+and every `1s` we _compare_
+the `start` time (unix time/epoch) 
+to the `current` `Date.now()` time.
 
-The rest of the logic as been taken from: https://github.com/dwyl/learn-alpine.js#stopwatch-%EF%B8%8F
+The rest of the logic is borrowed from: 
+[dwyl/learn-alpine.js#stopwatch](https://github.com/dwyl/learn-alpine.js#stopwatch-%EF%B8%8F)
 
-## What's next?
+## What's _next_?
 
 If you found this example useful, 
 please ⭐️ the GitHub repository
