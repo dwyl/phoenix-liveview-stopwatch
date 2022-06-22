@@ -574,6 +574,165 @@ defmodule StopwatchWeb.StopwatchLive do
 end
 ```
 
+## Liveview + JS
+
+On this section we combine LiveView and JavaScript,
+to create the stopwatch logic. On start/stop/reset the liveview will save
+the state of the stopwatch.
+The javsscript is then responsible to start/stop the timer.
+
+on the router we have define a new endpoint `/stopwatch-js`:
+
+```elixir
+live("/stopwatch-js", StopwatchLiveJS)
+```
+
+And the `StopwatchLiveJS` module is define in `lib/stopwatch_web/live/stopwatch_live_js.ex`:
+
+
+```elixir
+defmodule StopwatchWeb.StopwatchLiveJS do
+  use StopwatchWeb, :live_view
+  alias Stopwatch.TimerDB
+
+  def mount(_params, _session, socket) do
+    if connected?(socket), do: TimerDB.subscribe()
+
+    # {timer_status, time} = TimerServer.get_timer_state(Stopwatch.TimerServer)
+    # {:ok, assign(socket, time: time, timer_status: timer_status)}
+    {status, start, stop} = TimerDB.get_timer_state(Stopwatch.TimerDB)
+    TimerDB.notify()
+    {:ok, assign(socket, timer_status: status, start: start, stop: stop)}
+  end
+
+  def render(assigns) do
+    Phoenix.View.render(StopwatchWeb.StopwatchView, "stopwatch_js.html", assigns)
+  end
+
+  def handle_event("start", _value, socket) do
+    TimerDB.start_timer(Stopwatch.TimerDB)
+
+    TimerDB.notify()
+    {:noreply, socket}
+  end
+
+  def handle_event("stop", _value, socket) do
+    TimerDB.stop_timer(Stopwatch.TimerDB)
+    TimerDB.notify()
+    {:noreply, socket}
+  end
+
+  def handle_event("reset", _value, socket) do
+    TimerDB.reset_timer(Stopwatch.TimerDB)
+    TimerDB.notify()
+    {:noreply, socket}
+  end
+
+  def handle_info(:timer_updated, socket) do
+    {timer_status, start, stop} = TimerDB.get_timer_state(Stopwatch.TimerDB)
+    socket = assign(socket, timer_status: timer_status, start: start, stop: stop)
+
+    {:noreply,
+     push_event(socket, "timerUpdated", %{timer_status: timer_status, start: start, stop: stop})}
+  end
+end
+```
+
+`TimerDB` is an agent used to store the stopwatch status as a tuple:
+`{status, start_time, stop_time}`
+
+Because we have created the project with `mix phx.new --no-ecto` it was easier
+to use Agent but you can also use a database (e.g. Postgres) to store the state
+of the stopwatch.
+
+The module listen for "start", "stop" and "reset" events, save the updated status
+using the `TimerDB` module and notify the changes to other clients with 
+`handle_info`
+
+The template is defined in `lib/stopwatch_web/templates/stopwatch/stopwatch_js.html.heex`:
+
+```html
+<h1 id="timer">00:00:00</h1>
+
+<%= if @timer_status == :stopped do %>
+  <button phx-click="start">Start</button>
+<% end %>
+
+<%= if @timer_status == :running do %>
+  <button phx-click="stop">Stop</button>
+<% end %>
+
+<button phx-click="reset">Reset</button>
+```
+
+Finally we can update the `assets/js/app.js` file to add the stopwatch logic:
+
+```js
+timer = document.getElementById("timer")
+T = {ticking: false}
+window.addEventListener("phx:timerUpdated", e => {
+  if (e.detail.timer_status == "running" && !T.ticking) {
+          T.ticking = true
+          T.timerInterval = setInterval(function() {
+            text = timer_text(new Date(e.detail.start), Date.now())
+            timer.textContent = text
+          }, 1000);
+  }
+
+  if (e.detail.timer_status == "stopped") {
+    clearInterval(T.timerInterval)
+    T.ticking = false
+    text = timer_text(new Date(e.detail.start), new Date(e.detail.stop))
+    timer.textContent = text
+  }
+})
+ 
+function leftPad(val) {
+  return val < 10 ? '0' + String(val) : val;
+}
+
+function timer_text(start, current) {
+  let h="00", m="00", s="00";
+  const diff = current - start;
+  // seconds
+  if(diff > 1000) {
+    s = Math.floor(diff / 1000);
+    s = s > 60 ? s % 60 : s;
+    s = leftPad(s);
+  }
+  // minutes
+  if(diff > 60000) {
+    m = Math.floor(diff/60000);
+    m = m > 60 ? m % 60 : leftPad(m);
+  }
+  // hours
+  if(diff > 3600000) {
+    h = Math.floor(diff/3600000);
+    h = leftPad(h)
+    }
+
+   return h + ':' + m + ':' + s;
+}
+```
+
+The important part is where we trigger the ticking process:
+
+```js
+window.addEventListener("phx:timerUpdated", e => {
+  if (e.detail.timer_status == "running" && !T.ticking) {
+          T.ticking = true
+          T.timerInterval = setInterval(function() {
+            text = timer_text(new Date(e.detail.start), Date.now())
+            timer.textContent = text
+          }, 1000);
+  }
+})
+ 
+`setInterval` is call when the stopwatch is started and we every 1s we compare
+the start time (unix time/epoch) to the current `Date.now() time
+
+The rest of the logic as been taken from: https://github.com/dwyl/learn-alpine.js#stopwatch-%EF%B8%8F
+
 ## What's next?
 
 If you found this example useful, 
