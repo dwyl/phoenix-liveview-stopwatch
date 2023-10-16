@@ -55,7 +55,7 @@ defmodule Stopwatch.MixProject do
       {:plug_cowboy, "~> 2.5"},
 
       # Check test coverage: hex.pm/packages/excoveralls
-      {:excoveralls, "~> 0.17.0", only: :test},
+      {:excoveralls, "~> 0.18.0", only: :test},
     ]
   end
 
