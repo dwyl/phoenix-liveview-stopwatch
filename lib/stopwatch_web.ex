@@ -44,7 +44,7 @@ defmodule StopwatchWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {StopwatchWeb.LayoutView, "live.html"}
+        layout: {StopwatchWeb.LayoutView, :live}
 
       unquote(view_helpers())
     end
