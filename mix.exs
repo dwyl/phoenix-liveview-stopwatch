@@ -57,6 +57,7 @@ defmodule Stopwatch.MixProject do
 
       # Check test coverage: hex.pm/packages/excoveralls
       {:excoveralls, "~> 0.18.0", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end
 
